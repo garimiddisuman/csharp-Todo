@@ -25,11 +25,8 @@ public class TodoController : ControllerBase
 
         return Created($"/Todo/{newTask.Title}", newTask);
     }
-
-    /// <summary>
-    /// To toggle the status with id
-    /// </summary>
-    [HttpPatch("{id:int}")]
+    
+    [HttpPatch("toggle/{id:int}")]
     public IActionResult UpdateTask(int id)
     {
         var task = _context.Todo.Find(id);
