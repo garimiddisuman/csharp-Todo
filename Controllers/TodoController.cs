@@ -17,16 +17,16 @@ public class TodoController : ControllerBase
     }
 
     [HttpPost("add-task")]
-    public IActionResult AddTask([FromForm] CreateTaskRequest task)
+    public IActionResult AddTask([FromBody] CreateTaskRequest task)
     {
         var newTask = new TaskTemplate { Title = task.Title, IsDone = false };
-        _context.Add(newTask);
+        _context.Todo.Add(newTask);
         _context.SaveChanges();
 
         return Created($"/Todo/{newTask.Title}", newTask);
     }
     
-    [HttpPatch("toggle/{id:int}")]
+    [HttpPatch("toggle-task/{id:int}")]
     public IActionResult UpdateTask(int id)
     {
         var task = _context.Todo.Find(id);
@@ -39,10 +39,19 @@ public class TodoController : ControllerBase
         
         return NoContent();
     }
+
+    [HttpDelete("delete-task/{id:int}")]
+    public IActionResult DeleteTask(int id)
+    {
+        _context.Todo.Where(task => task.Id == id).ToList().ForEach(task => _context.Todo.Remove(task));
+        _context.SaveChanges();
+        return NoContent();
+    }
     
     [HttpGet("all-tasks")]
     public IActionResult GetAllTasks()
     {
-        return Ok(_context.Todo);
+        Console.WriteLine("Serving all tasks.....");
+        return Ok(_context.Todo.OrderBy(task => task.IsDone));
     }
 }

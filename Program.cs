@@ -10,6 +10,8 @@ class Program
         WebApplication app = CreateApp();
         app.UseSwagger();
         app.UseSwaggerUI();
+        app.UseDefaultFiles();
+        app.UseStaticFiles();
         app.MapControllers();
         app.Run();
     }
