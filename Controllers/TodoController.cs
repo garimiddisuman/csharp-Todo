@@ -8,21 +8,15 @@ public record CreateTaskRequest(string Title);
 
 [ApiController]
 [Route("Todo")]
-public class TodoController : ControllerBase
+public class TodoController(PracticeContext context) : ControllerBase
 {
-    private PracticeContext _context;
-
-    public TodoController(PracticeContext context)
-    {
-        _context = context;
-    }
-
     [HttpPost("add-task")]
     public IActionResult AddTask([FromBody] CreateTaskRequest task)
     {
+        if(task.Title == "") return BadRequest();
         var newTask = new TaskTemplate { Title = task.Title, IsDone = false };
-        _context.Todo.Add(newTask);
-        _context.SaveChanges();
+        context.Todo.Add(newTask);
+        context.SaveChanges();
 
         return Created($"Todo/{newTask.Title}", newTask);
     }
@@ -30,23 +24,23 @@ public class TodoController : ControllerBase
     [HttpPatch("toggle-task/{id:int}")]
     public IActionResult UpdateTask(int id)
     {
-        var task = _context.Todo.Find(id);
+        var task = context.Todo.Find(id);
 
         if (task == null) return NotFound();
 
         task.IsDone = !task.IsDone;
-        _context.SaveChanges();
+        context.SaveChanges();
         return NoContent();
     }
 
     [HttpDelete("delete-task/{id:int}")]
     public IActionResult DeleteTask(int id)
     {
-        var task = _context.Todo.Find(id);
+        var task = context.Todo.Find(id);
         if (task == null) return NotFound();
         
-        _context.Todo.Remove(task);
-        _context.SaveChanges();
+        context.Todo.Remove(task);
+        context.SaveChanges();
         return NoContent();
     }
 
@@ -55,6 +49,6 @@ public class TodoController : ControllerBase
     {
         Console.WriteLine("Serving all tasks.....");
 
-        return Ok(_context.Todo.AsNoTracking().OrderBy(task => task.IsDone));
+        return Ok(context.Todo.AsNoTracking().OrderBy(task => task.IsDone));
     }
 }
