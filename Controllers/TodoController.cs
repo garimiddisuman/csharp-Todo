@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MyTodo.Data;
 
 namespace MyTodo.Controllers;
@@ -23,35 +24,37 @@ public class TodoController : ControllerBase
         _context.Todo.Add(newTask);
         _context.SaveChanges();
 
-        return Created($"/Todo/{newTask.Title}", newTask);
+        return Created($"Todo/{newTask.Title}", newTask);
     }
-    
+
     [HttpPatch("toggle-task/{id:int}")]
     public IActionResult UpdateTask(int id)
     {
         var task = _context.Todo.Find(id);
 
-        if (task != null)
-        {
-            task.IsDone = !task.IsDone;
-            _context.SaveChanges();
-        }
-        
+        if (task == null) return NotFound();
+
+        task.IsDone = !task.IsDone;
+        _context.SaveChanges();
         return NoContent();
     }
 
     [HttpDelete("delete-task/{id:int}")]
     public IActionResult DeleteTask(int id)
     {
-        _context.Todo.Where(task => task.Id == id).ToList().ForEach(task => _context.Todo.Remove(task));
+        var task = _context.Todo.Find(id);
+        if (task == null) return NotFound();
+        
+        _context.Todo.Remove(task);
         _context.SaveChanges();
         return NoContent();
     }
-    
+
     [HttpGet("all-tasks")]
     public IActionResult GetAllTasks()
     {
         Console.WriteLine("Serving all tasks.....");
-        return Ok(_context.Todo.OrderBy(task => task.IsDone));
+
+        return Ok(_context.Todo.AsNoTracking().OrderBy(task => task.IsDone));
     }
 }
